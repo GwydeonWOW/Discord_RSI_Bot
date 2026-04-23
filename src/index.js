@@ -13,6 +13,7 @@ import { buildWatchEmbed, buildEntryEmbed, buildPositionEmbed, buildTP1Embed, bu
 import { createBuyButton, createSellButton, createShortButton } from './ui/components.js';
 import alertManager from './services/alertManager.js';
 import { fetchCurrentPrice, toSymbol } from './services/marketData.js';
+import { startWebServer, setBotState } from './web/server.js';
 
 // Create Discord client
 const client = new Client({
@@ -22,6 +23,9 @@ const client = new Client({
   ],
   partials: [Partials.Channel, Partials.Message],
 });
+
+// Start web dashboard
+startWebServer();
 
 // Signal processor - handles scanner results and sends Discord messages
 async function processSignal(token, signal) {
@@ -37,7 +41,7 @@ async function processSignal(token, signal) {
       try {
         const ch = guild.channels.cache.get(msg.channelId);
         if (ch) {
-          const message = await ch.messages.fetch(msg.messageId).catch(() => null);
+          const message = await ch.messages.fetch(msg.message_id).catch(() => null);
           if (message) await message.delete().catch(() => {});
         }
       } catch {}
@@ -188,12 +192,30 @@ client.login(config.discordToken).then(() => {
 
   // Wait for ready, then start scanner
   client.once('clientReady', () => {
+    logger.info(`Bot ready as ${client.user.tag}`);
+
+    // Update dashboard state
+    setBotState({
+      ready: true,
+      guilds: client.guilds.cache.size,
+      startedAt: new Date(),
+    });
+
+    // Update WS ping periodically
+    setInterval(() => {
+      setBotState({
+        wsPing: client.ws.ping,
+        guilds: client.guilds.cache.size,
+      });
+    }, 30000);
+
     // Schedule scanner + position check every 15 min
     cron.schedule(config.scanCron, async () => {
       logger.info('Scheduled scan triggered');
       try {
         await scanAll(processSignal);
         await checkPositions(sendExitAlert);
+        setBotState({ lastScanTime: new Date() });
       } catch (err) {
         logger.error('Scan cycle error', err);
       }

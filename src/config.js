@@ -7,6 +7,7 @@ export default {
   binanceSecret: process.env.BINANCE_SECRET || '',
   scanCron: process.env.SCAN_CRON || '*/15 * * * *',
   logLevel: process.env.LOG_LEVEL || 'info',
+  webPort: parseInt(process.env.WEB_PORT) || 3000,
   strategy: {
     rsiPeriod: 14,
     atrPeriod: 14,
