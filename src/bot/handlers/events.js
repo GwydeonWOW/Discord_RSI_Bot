@@ -5,7 +5,7 @@ import db from '../../db/database.js';
 import logger from '../../logger.js';
 
 export function setupEventHandlers(client) {
-  client.once('ready', async () => {
+  client.once('clientReady', async () => {
     logger.info(`Bot ready as ${client.user.tag}`);
 
     // Run migrations

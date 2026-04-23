@@ -187,7 +187,7 @@ client.login(config.discordToken).then(() => {
   logger.info('Logging in to Discord...');
 
   // Wait for ready, then start scanner
-  client.once('ready', () => {
+  client.once('clientReady', () => {
     // Schedule scanner
     cron.schedule(config.scanCron, async () => {
       logger.info('Scheduled scan triggered');

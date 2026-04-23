@@ -118,7 +118,7 @@ export async function registerCommands(client) {
     await import('../commands/remove.js'),
     await import('../commands/list.js'),
     await import('../commands/pnl.js'),
-    await import('../commands/positions.js'),
+    await import('../commands/position.js'),
     await import('../commands/setalerts.js'),
     await import('../commands/setpnl.js'),
   ];
