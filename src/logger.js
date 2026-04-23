@@ -2,11 +2,20 @@ import winston from 'winston';
 import { Writable } from 'stream';
 import config from './config.js';
 
-const { combine, timestamp, printf, colorize } = winston.format;
+const { combine, printf, colorize } = winston.format;
+
+function spainTimestamp() {
+  return new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Madrid' });
+}
 
 const logFormat = printf(({ level, message, timestamp: ts, ...meta }) => {
   const metaStr = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
   return `${ts} [${level}]: ${message}${metaStr}`;
+});
+
+const spainTsFormat = winston.format((info) => {
+  info.timestamp = spainTimestamp();
+  return info;
 });
 
 // In-memory log buffer (last 100 entries for dashboard)
@@ -31,12 +40,12 @@ const memoryStream = new Writable({
 const logger = winston.createLogger({
   level: config.logLevel,
   format: combine(
-    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    spainTsFormat(),
     winston.format.json(),
   ),
   transports: [
     new winston.transports.Console({
-      format: combine(colorize(), timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), logFormat),
+      format: combine(colorize(), spainTsFormat(), logFormat),
     }),
     new winston.transports.Stream({ stream: memoryStream }),
   ],
