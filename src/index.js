@@ -188,7 +188,7 @@ client.login(config.discordToken).then(() => {
 
   // Wait for ready, then start scanner
   client.once('clientReady', () => {
-    // Schedule scanner
+    // Schedule scanner + position check every 15 min
     cron.schedule(config.scanCron, async () => {
       logger.info('Scheduled scan triggered');
       try {
@@ -196,15 +196,6 @@ client.login(config.discordToken).then(() => {
         await checkPositions(sendExitAlert);
       } catch (err) {
         logger.error('Scan cycle error', err);
-      }
-    });
-
-    // Also check positions more frequently (every 15 min)
-    cron.schedule('*/15 * * * *', async () => {
-      try {
-        await checkPositions(sendExitAlert);
-      } catch (err) {
-        logger.error('Position check error', err);
       }
     });
 
