@@ -1,0 +1,31 @@
+import 'dotenv/config';
+
+export default {
+  discordToken: process.env.DISCORD_TOKEN,
+  databaseUrl: process.env.DATABASE_URL || 'postgresql://rsibot:rsibot_secret@localhost:5432/rsibot',
+  binanceApiKey: process.env.BINANCE_API_KEY || '',
+  binanceSecret: process.env.BINANCE_SECRET || '',
+  scanCron: process.env.SCAN_CRON || '*/15 * * * *',
+  logLevel: process.env.LOG_LEVEL || 'info',
+  strategy: {
+    rsiPeriod: 14,
+    atrPeriod: 14,
+    emaFast: 50,
+    emaSlow: 200,
+    emaTrail: 20,
+    pivotLeft: 5,
+    pivotRight: 5,
+    volRatioMin: 0.8,
+    volRatioMax: 1.8,
+    volRatioSmaPeriod: 30,
+    riskPct: 0.5,
+    tp1Multiplier: 1.0,
+    tp2Multiplier: 2.5,
+    stopBuffer: 0.5,
+    stopMaxMultiplier: 1.8,
+    timeStopBars: 10,
+    htfTimeframe: '1d',
+    etfTimeframe: '4h',
+    candleLimit: 250,
+  },
+};
