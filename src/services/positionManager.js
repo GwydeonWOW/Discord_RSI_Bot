@@ -89,7 +89,7 @@ export async function checkPositions(sendExitAlert) {
      WHERE p.status IN ('OPEN', 'TP1_HIT')`
   );
 
-  for (const pos of positions) {
+  for (const pos of positions.rows) {
     try {
       const currentPrice = await fetchCurrentPrice(`${pos.symbol}/USDT`);
       const entry = parseFloat(pos.entry_price);
