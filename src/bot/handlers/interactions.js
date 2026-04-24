@@ -121,6 +121,7 @@ export async function registerCommands(client) {
     await import('../commands/position.js'),
     await import('../commands/setalerts.js'),
     await import('../commands/setpnl.js'),
+    await import('../commands/status.js'),
   ];
 
   for (const cmd of commandFiles) {
