@@ -66,7 +66,7 @@ async function processSignal(token, signal) {
     }
 
     const embed = buildWatchEmbed(signal);
-    const sent = await channel.send({ content: '@here', embeds: [embed] });
+    const sent = await channel.send({ content: '@everyone', embeds: [embed] });
 
     await alertManager.upsertWatchAlert(
       token.id,
@@ -99,7 +99,7 @@ async function processSignal(token, signal) {
     // Create new entry alert
     const embed = buildEntryEmbed(signal);
     // We need to create the alert first to get the ID for the button
-    const sent = await channel.send({ content: '@here', embeds: [embed] });
+    const sent = await channel.send({ content: '@everyone', embeds: [embed] });
     const alertId = await alertManager.createEntryAlert(
       token.id, signal.direction,
       {
@@ -135,7 +135,7 @@ async function sendExitAlert(position, result, reason) {
   if (reason === 'TP1_HIT') {
     // Just update position message and send notification
     const embed = buildTP1Embed(token.symbol, position.direction);
-    await channel.send({ content: '@here', embeds: [embed] });
+    await channel.send({ content: '@everyone', embeds: [embed] });
 
     // Update original position message
     if (position.message_id) {
@@ -154,7 +154,7 @@ async function sendExitAlert(position, result, reason) {
     // Auto-close on stop hit - send notification
     if (result) {
       const embed = buildTradeClosedEmbed(result);
-      await channel.send({ content: '@here', embeds: [embed] });
+      await channel.send({ content: '@everyone', embeds: [embed] });
 
       // Update original position message
       if (position.message_id) {
@@ -170,7 +170,7 @@ async function sendExitAlert(position, result, reason) {
   if (reason === 'TP2') {
     if (result) {
       const embed = buildTradeClosedEmbed(result);
-      await channel.send({ content: '@here', embeds: [embed] });
+      await channel.send({ content: '@everyone', embeds: [embed] });
 
       if (position.message_id) {
         try {
