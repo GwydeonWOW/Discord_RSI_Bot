@@ -64,9 +64,10 @@ export async function execute(interaction) {
       const prevClose = dailyData.closes[dailyData.closes.length - 2];
       const change24h = ((currentPrice - prevClose) / prevClose * 100).toFixed(2);
 
-      // Check for active divergences
-      const pricePivots = findPivots(fourHourData.closes, S.pivotLeft, S.pivotRight);
-      const rsiPivots = findPivots(rsi.filter(v => v != null), S.pivotLeft, S.pivotRight);
+      // Check for active divergences (aligned arrays)
+      const rsiStart = rsi.findIndex(v => v != null);
+      const pricePivots = findPivots(fourHourData.closes.slice(rsiStart), S.pivotLeft, S.pivotRight);
+      const rsiPivots = findPivots(rsi.slice(rsiStart), S.pivotLeft, S.pivotRight);
       const divergences = detectDivergences(pricePivots.lows, pricePivots.highs, rsiPivots.lows, rsiPivots.highs);
       const validDivs = divergences.filter(d => isRegimeValidForDivergence(regime.regime, d));
 

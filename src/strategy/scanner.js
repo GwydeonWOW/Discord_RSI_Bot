@@ -53,15 +53,25 @@ export async function scanToken(symbol) {
     return { symbol, regime, volatility, signal: null, reason: 'Volatility out of range' };
   }
 
-  // Find pivots
-  const pricePivots = findPivots(fourHourData.closes, S.pivotLeft, S.pivotRight);
-  const rsiPivots = findPivots(rsi.filter(v => v != null), S.pivotLeft, S.pivotRight);
+  // Align RSI with price data — RSI has nulls for the first `period` values
+  // Both arrays must share the same indices so pivots correspond to the same candles
+  const rsiStart = rsi.findIndex(v => v != null);
+  const alignedCloses = fourHourData.closes.slice(rsiStart);
+  const alignedRsi = rsi.slice(rsiStart);
+
+  // Find pivots on aligned data
+  const pricePivots = findPivots(alignedCloses, S.pivotLeft, S.pivotRight);
+  const rsiPivots = findPivots(alignedRsi, S.pivotLeft, S.pivotRight);
+
+  logger.info(`${symbol}: price pivots — ${pricePivots.lows.length} lows, ${pricePivots.highs.length} highs | RSI pivots — ${rsiPivots.lows.length} lows, ${rsiPivots.highs.length} highs`);
 
   // Detect divergences
   const divergences = detectDivergences(
     pricePivots.lows, pricePivots.highs,
     rsiPivots.lows, rsiPivots.highs
   );
+
+  logger.info(`${symbol}: ${divergences.length} raw divergence(s) detected`);
 
   if (divergences.length === 0) {
     return { symbol, regime, volatility, signal: null, reason: 'No divergence detected' };
@@ -71,6 +81,7 @@ export async function scanToken(symbol) {
   const validDivergences = divergences.filter(d => isRegimeValidForDivergence(regime.regime, d));
 
   if (validDivergences.length === 0) {
+    logger.info(`${symbol}: All ${divergences.length} divergence(s) filtered by regime (${regime.regime})`);
     return { symbol, regime, volatility, divergences, signal: null, reason: 'Divergence not valid for current regime' };
   }
 
@@ -87,14 +98,26 @@ export async function scanToken(symbol) {
 
     // RSI filter for continuation setups
     if (divergence.category === 'continuation') {
-      if (divergence.direction === 'LONG' && (lastRsi < 30 || lastRsi > 55)) continue;
-      if (divergence.direction === 'SHORT' && (lastRsi < 45 || lastRsi > 70)) continue;
+      if (divergence.direction === 'LONG' && (lastRsi < S.rsiContinuationLongMin || lastRsi > S.rsiContinuationLongMax)) {
+        logger.info(`${symbol}: ${divergence.type} filtered — RSI ${lastRsi.toFixed(1)} outside ${S.rsiContinuationLongMin}-${S.rsiContinuationLongMax}`);
+        continue;
+      }
+      if (divergence.direction === 'SHORT' && (lastRsi < S.rsiContinuationShortMin || lastRsi > S.rsiContinuationShortMax)) {
+        logger.info(`${symbol}: ${divergence.type} filtered — RSI ${lastRsi.toFixed(1)} outside ${S.rsiContinuationShortMin}-${S.rsiContinuationShortMax}`);
+        continue;
+      }
     }
 
     // RSI filter for reversal setups
     if (divergence.category === 'reversal') {
-      if (divergence.direction === 'LONG' && lastRsi >= 35) continue;
-      if (divergence.direction === 'SHORT' && lastRsi <= 65) continue;
+      if (divergence.direction === 'LONG' && lastRsi >= S.rsiReversalLongMax) {
+        logger.info(`${symbol}: ${divergence.type} filtered — RSI ${lastRsi.toFixed(1)} >= ${S.rsiReversalLongMax}`);
+        continue;
+      }
+      if (divergence.direction === 'SHORT' && lastRsi <= S.rsiReversalShortMin) {
+        logger.info(`${symbol}: ${divergence.type} filtered — RSI ${lastRsi.toFixed(1)} <= ${S.rsiReversalShortMin}`);
+        continue;
+      }
     }
 
     // Distance to EMA50 check for continuation
