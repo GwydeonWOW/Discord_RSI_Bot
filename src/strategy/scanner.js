@@ -141,6 +141,7 @@ export async function scanToken(symbol) {
 
     signals.push({
       type: trigger.triggered ? 'ENTRY' : 'WATCH',
+      symbol,
       setup: setupName,
       direction: divergence.direction,
       category: divergence.category,
